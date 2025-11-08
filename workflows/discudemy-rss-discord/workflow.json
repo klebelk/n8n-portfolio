@@ -1,0 +1,340 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour",
+              "minute": 15
+            },
+            {
+              "mode": "everyHour",
+              "minute": 45
+            }
+          ]
+        },
+        "feedUrl": "https://www.discudemy.com/feed/"
+      },
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -224
+      ],
+      "id": "149e74c2-ee60-4ae6-8cea-5fdbf19876eb",
+      "name": "RSS Feed Trigger"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.newUrl }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        752,
+        -224
+      ],
+      "id": "ab972f0b-fd13-4dee-b961-79fe84e4e171",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1427312886560325644",
+          "mode": "id"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "1427313053493625025",
+          "mode": "list",
+          "cachedResultName": "discudemy-rss",
+          "cachedResultUrl": "https://discord.com/channels/1427312886560325644/1427313053493625025"
+        },
+        "content": "=\n{{ new Date($('RSS Feed Trigger').first().json.isoDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) }} - [{{ $('RSS Feed Trigger').item.json.title }}]({{ $json.coupon_link }})",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -224
+      ],
+      "id": "3b9b676a-2e99-470d-b639-2c9a2638ebd2",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const originalUrl = item.json.link;\n\n  // Remove protocol and domain\n  const path = originalUrl.replace('https://www.discudemy.com/', '');\n\n  // Split by \"/\" to remove category\n  const parts = path.split('/').filter(Boolean);  // ['python', 'python-and-flask-only-demonstration-course']\n  parts.shift(); // remove \"python\" (category)\n\n  const courseSlug = parts.join('/'); // \"python-and-flask-only-demonstration-course\"\n\n  // Build final URL\n  const newUrl = `https://www.discudemy.com/go/${courseSlug}`;\n\n  return {\n    json: {\n      ...item.json,\n      originalUrl,\n      newUrl,\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        -224
+      ],
+      "id": "26790950-6607-4bac-af63-881a21a02b53",
+      "name": "Take Course Link"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = items[0].json.html || items[0].json.data;\n\n// Regex to extract link with couponCode=\nconst match = html.match(/https:\\/\\/www\\.udemy\\.com\\/course\\/[^\"]+couponCode=[^\"]+/);\n\nreturn [{\n  json: {\n    coupon_link: match ? match[0] : null\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -224
+      ],
+      "id": "4b435679-8cd5-4af7-b7d6-70429fcdbcd5",
+      "name": "Get Discount Link"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6200485b-71e4-4858-a1e1-a28d2533e2ba",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "={{ $('RSS Feed Trigger').item.json.link }}",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -224
+      ],
+      "id": "129c018d-c2b4-4a96-9da7-c30fb3231dac",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "ptScjdJS8AE9TkmI",
+          "mode": "list",
+          "cachedResultName": "Discudemy",
+          "cachedResultUrl": "/projects/MeIbDTD71yLJQ3En/datatables/ptScjdJS8AE9TkmI"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "link": "={{ $('RSS Feed Trigger').item.json.link }}",
+            "title": "={{ $('RSS Feed Trigger').item.json.title }}"
+          },
+          "matchingColumns": [
+            "link"
+          ],
+          "schema": [
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        304,
+        -224
+      ],
+      "id": "4bed85be-a631-49a7-9d47-03e27d9d9fa9",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ptScjdJS8AE9TkmI",
+          "mode": "list",
+          "cachedResultName": "Discudemy",
+          "cachedResultUrl": "/projects/MeIbDTD71yLJQ3En/datatables/ptScjdJS8AE9TkmI"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "link",
+              "keyValue": "={{ $json.link }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -224
+      ],
+      "id": "5944ca29-e940-4f19-af1e-fcb03c549bfa",
+      "name": "Get row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "ptScjdJS8AE9TkmI",
+          "mode": "list",
+          "cachedResultName": "Discudemy",
+          "cachedResultUrl": "/projects/MeIbDTD71yLJQ3En/datatables/ptScjdJS8AE9TkmI"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "createdAt",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ weeks: 3 }).toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -32
+      ],
+      "id": "e4aba43a-205e-4ccd-9765-468cec79938b",
+      "name": "Delete Old Data"
+    }
+  ],
+  "connections": {
+    "RSS Feed Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Delete Old Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Get Discount Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Take Course Link": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Discount Link": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Take Course Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
