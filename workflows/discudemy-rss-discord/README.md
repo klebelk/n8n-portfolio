@@ -1,62 +1,38 @@
 # Discudemy RSS to Discord Automation
 
-## Overview
-Automated workflow that monitors Discudemy's RSS feed for free Udemy courses, extracts discount coupon links, and posts them to Discord with deduplication.
-
-## Problem Solved
-Manually checking for free Udemy courses is time-consuming. This workflow automatically finds, processes, and shares course deals in real-time.
+**Automates the discovery and sharing of free Udemy courses from Discudemy's RSS feed to Discord, saving users significant time and ensuring they never miss a deal.**
 
 ## Features
-- ✅ RSS feed monitoring (every 30 minutes)
-- ✅ Duplicate detection using Data Table
-- ✅ Automatic coupon link extraction
-- ✅ Discord notifications with formatted messages
-- ✅ Auto-cleanup of old entries (3 weeks retention)
+- ✅ RSS feed monitoring (every 30 minutes, ensuring timely updates)
+- ✅ Duplicate detection using Data Table (eliminates 100% duplicate posts, preventing spam)
+- ✅ Automatic coupon link extraction (streamlines access to free courses)
+- ✅ Discord notifications with formatted messages (clear and actionable alerts for users)
+- ✅ Auto-cleanup of old entries (3 weeks retention, maintaining data hygiene)
+
+## Impact Metrics
+- **Processing Speed:** 2-3 seconds per course
+- **Volume Handled:** ~50-100 courses per day
+- **Time Saved:** Eliminates hours of manual searching per week for users
+- **Accuracy:** 100% success rate for duplicate elimination
 
 ## Workflow Logic
-
-
-
-\`\`\`
+```
 RSS Feed → Check Duplicates → Insert to DB → Extract Link → 
 Get Coupon → Post to Discord
               ↓
          Delete Old Data
-\`\`\`
+```
 
-## Key Nodes
+## Tech Stack
+- n8n (workflow automation)
+- Discord API (notifications)
+- Data Tables (deduplication, data retention)
+- HTTP Requests (web scraping)
+- JavaScript (regex for link extraction)
 
-1. **RSS Feed Trigger** - Monitors Discudemy feed twice per hour
-2. **Get Link** - Checks if course already posted (deduplication)
-3. **Check If Processed** - Conditional logic for new courses only
-4. **Insert to Data Table** - Stores course info in Data Table
-5. **Take Course Link** - Extract course slug & parse coupon links
-6. **HTTP Request** - Fetches course page HTML
-7. **Get Discount Link** - Posts formatted message with link
-8. **Delete Old Data** - Removes entries older than 3 weeks
+## Use Cases
+- Automatically discover and share free online courses.
+- Build a community resource for educational deals.
+- Reduce manual effort in monitoring specific RSS feeds.
 
-## Technical Highlights
-
-### Deduplication System
-Uses n8n Data Table to track posted courses and prevent spam.
-
-### Link Processing
-Transforms RSS links into direct course pages:
-\`\`\`
-https://www.discudemy.com/python/course-name/
-    ↓
-https://www.discudemy.com/go/course-name
-\`\`\`
-
-### Regex Extraction
-\`\`\`javascript
-const match = html.match(/https:\/\/www\.udemy\.com\/course\/[^"]+couponCode=[^"]+/);
-\`\`\`
-
-## Metrics
-- Processes ~50-100 courses per day
-- Eliminates 100% duplicate posts
-- Average processing time: 2-3 seconds per course
-
-## Portfolio Value
-Demonstrates: RSS parsing, web scraping, conditional logic, database operations, Discord API, data retention policies, regex pattern matching
+[Link to SETUP.md for technical details](SETUP.md)
