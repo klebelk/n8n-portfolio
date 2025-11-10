@@ -4,6 +4,7 @@
 - [About](#about)
 - [Featured Workflows](#featured-workflows)
 - [Skills](#skills)
+- [Use Cases](#use-cases)
 
 ## About
 Automation specialist building production-ready n8n workflows that solve real business problems. I focus on AI-powered content processing, intelligent data routing, and multi-platform integrations. Each workflow demonstrates clean architecture, proper error handling, and scalable design patterns.
