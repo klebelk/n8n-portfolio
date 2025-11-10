@@ -1,0 +1,560 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -64
+      ],
+      "id": "ae42c4ce-c6d1-4aa8-b128-94dac8f07291",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "repository",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.owner }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.name }}"
+        }
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -128
+      ],
+      "id": "f2373dcb-48fb-47ea-b3de-4dc270ac322d",
+      "name": "Get a repository",
+      "webhookId": "120df78e-5832-4412-873d-8a479eb1154c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const repos = [\n  'n8n-io/n8n',\n  'langchain-ai/langchainjs',\n  'microsoft/playwright'\n];\n\nreturn repos.map(repo => ({\n  json: { \n    repo: repo,\n    owner: repo.split('/')[0],\n    name: repo.split('/')[1]\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -64
+      ],
+      "id": "481ed1d0-db6d-4102-9916-9c0643f35853",
+      "name": "Set Repo List"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REDACTED",
+          "mode": "list",
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "tag_name",
+              "keyValue": "={{ $json.tag_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -128
+      ],
+      "id": "5585bc38-c468-4b37-8e0d-e5163f9017ad",
+      "name": "Check If Processed",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f8ce7fd4-0e5e-4d27-8838-6305b0dfa458",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        -64
+      ],
+      "id": "2f9ab129-b703-45e5-8603-b67b806e053e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "REDACTED",
+          "mode": "list",
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "repo_name": "={{ $('Extract Release Info').item.json.repo_name }}",
+            "tag_name": "={{ $('Extract Release Info').item.json.tag_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "tag_name",
+              "displayName": "tag_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "repo_name",
+              "displayName": "repo_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        -64
+      ],
+      "id": "979928b8-5158-4108-8835-1ccf9439c05e",
+      "name": "Mark as Processed"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        -64
+      ],
+      "id": "b6594a2e-d7cb-48c6-a11f-a4c4e80e85c7",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Repo: {{ $json.repo_name }}\nVersion: {{ $json.tag_name }}\nRelease Notes:\n{{ $('Extract Release Info').item.json.release_notes }}",
+        "options": {
+          "systemMessage": "You are a technical writer summarizing GitHub releases. \nCategorize each release as: Feature, Bugfix, Breaking Change, or Other.\nRespond in this format:\n\n**Category:** [Feature/Bugfix/Breaking/Other]\n**Summary:** [2-3 sentence summary]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2016,
+        -64
+      ],
+      "id": "1c46fb65-b4db-4189-99d2-e86145e834da",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2096,
+        176
+      ],
+      "id": "cb1e282f-0fc3-4df0-8584-5dc1d2425444",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "sendTo": "calebrodriguez098@gmail.com",
+        "subject": "test",
+        "message": "={{ $json.digest }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -512
+      ],
+      "id": "8f77c0f8-01e0-41aa-90eb-6a4fef3e08ec",
+      "name": "Send a message",
+      "webhookId": "5a3e0bcd-9fe7-465e-b4d6-0f23ea085448"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}/releases/latest",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json "
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-workflow"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        -128
+      ],
+      "id": "fc60005b-3967-4011-85a1-7840abecb4eb",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -416
+      ],
+      "id": "997b7c0d-c7c7-4b3a-bc32-6e490e3178c7",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const release = item.json;\n  const urlParts = release.url ? release.url.split('/') : [];\n  const repo_name = urlParts.length >= 6 ? `${urlParts[4]}/${urlParts[5]}` : 'Unknown';\n\n  \n  return {\n    json: {\n      repo_name: repo_name || 'Unknown',\n      tag_name: release.tag_name,\n      release_name: release.name,\n      published_at: release.published_at,\n      html_url: release.html_url,\n      body: release.body || 'No release notes',\n      author: release.author?.login || 'Unknown',\n      is_prerelease: release.prerelease,\n      // Clean up body text\n      release_notes: (release.body || '')\n        .replace(/#+/g, '')           // Remove markdown headers\n        .replace(/\\[.*?\\]\\(.*?\\)/g, '') // Remove links\n        .slice(0, 1000)                // Limit to 1000 chars for AI\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -128
+      ],
+      "id": "32bb7025-784f-479d-9312-6490ee075b21",
+      "name": "Extract Release Info"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const data = $('Extract Release Info').first().json\n  return {\n    json: {\n      // The input data should still be accessible\n      repo_name: data.repo_name,\n      tag_name: data.tag_name,\n      html_url: data.html_url,\n      published_at: data.published_at,\n      \n      // AI response\n      ai_summary: item.json.output\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        80
+      ],
+      "id": "9f14f7b2-ec7a-4480-aa71-7054476d130e",
+      "name": "Merge AI Summary to Metadata"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The aggregate node gives us an array with a data property\nconst aggregatedData = items[0].json.data || items;\n\n// Process each release\nconst releases = aggregatedData.map(item => {\n  const ai_summary = item.ai_summary || 'No summary available';\n  const hasFullData = item.html_url && item.published_at;\n  \n  return {\n    repo: item.repo_name || 'Unknown',\n    version: item.tag_name || 'Unknown',\n    url: item.html_url || '#',\n    summary: ai_summary,\n    published: item.published_at \n      ? new Date(item.published_at).toLocaleDateString('en-US', {\n          month: 'short',\n          day: '2-digit',\n          year: 'numeric'\n        })\n      : 'Unknown date',\n    hasFullData: hasFullData\n  };\n});\n\n// Filter out releases that don't have full data\nconst fullReleases = releases.filter(r => r.hasFullData);\n\n// Group by category\nconst grouped = {\n  features: [],\n  bugfixes: [],\n  breaking: [],\n  other: []\n};\n\nfullReleases.forEach(r => {\n  const category = (r.summary || '').toLowerCase();\n  if (category.includes('feature')) {\n    grouped.features.push(r);\n  } else if (category.includes('bugfix') || category.includes('bug')) {\n    grouped.bugfixes.push(r);\n  } else if (category.includes('breaking')) {\n    grouped.breaking.push(r);\n  } else {\n    grouped.other.push(r);\n  }\n});\n\n// Build HTML digest\nlet digest = `\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body {\n      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n      line-height: 1.6;\n      color: #333;\n      max-width: 800px;\n      margin: 0 auto;\n      padding: 20px;\n      background-color: #f5f5f5;\n    }\n    .container {\n      background-color: white;\n      padding: 30px;\n      border-radius: 8px;\n      box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n    }\n    h1 {\n      color: #2c3e50;\n      border-bottom: 3px solid #3498db;\n      padding-bottom: 10px;\n      margin-bottom: 30px;\n    }\n    h2 {\n      color: #34495e;\n      margin-top: 35px;\n      margin-bottom: 20px;\n      font-size: 1.5em;\n    }\n    .release {\n      background-color: #f8f9fa;\n      border-left: 4px solid #3498db;\n      padding: 20px;\n      margin-bottom: 25px;\n      border-radius: 4px;\n    }\n    .release h3 {\n      margin-top: 0;\n      color: #2c3e50;\n      font-size: 1.2em;\n    }\n    .release-date {\n      color: #7f8c8d;\n      font-size: 0.9em;\n      font-style: italic;\n      margin-bottom: 12px;\n    }\n    .release-summary {\n      color: #555;\n      margin-bottom: 15px;\n      line-height: 1.7;\n    }\n    .release-link {\n      display: inline-block;\n      padding: 8px 16px;\n      background-color: #3498db;\n      color: white !important;\n      text-decoration: none;\n      border-radius: 4px;\n      font-size: 0.9em;\n      transition: background-color 0.2s;\n    }\n    .release-link:hover {\n      background-color: #2980b9;\n    }\n    .stats {\n      background-color: #ecf0f1;\n      padding: 20px;\n      border-radius: 4px;\n      margin-top: 30px;\n    }\n    .stats h3 {\n      margin-top: 0;\n      color: #2c3e50;\n    }\n    .stats ul {\n      list-style: none;\n      padding: 0;\n      margin: 10px 0 0 0;\n    }\n    .stats li {\n      padding: 5px 0;\n      color: #555;\n    }\n    .emoji {\n      font-size: 1.2em;\n      margin-right: 8px;\n    }\n    .feature-section { border-left-color: #2ecc71; }\n    .bugfix-section { border-left-color: #e74c3c; }\n    .breaking-section { border-left-color: #f39c12; }\n    .other-section { border-left-color: #95a5a6; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <h1>\ud83d\udce6 GitHub Changelog Digest</h1>\n    <p style=\"color: #7f8c8d; font-size: 0.95em;\">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>\n`;\n\nif (grouped.features.length > 0) {\n  digest += `<h2><span class=\"emoji\">\ud83d\ude80</span>New Features</h2>`;\n  grouped.features.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\n      <div class=\"release feature-section\">\n        <h3>${r.repo} <span style=\"color: #7f8c8d; font-weight: normal;\">${r.version}</span></h3>\n        <div class=\"release-date\">Released: ${r.published}</div>\n        <div class=\"release-summary\">${summaryText}</div>\n        <a href=\"${r.url}\" class=\"release-link\">View Release \u2192</a>\n      </div>\n    `;\n  });\n}\n\nif (grouped.bugfixes.length > 0) {\n  digest += `<h2><span class=\"emoji\">\ud83d\udc1b</span>Bug Fixes</h2>`;\n  grouped.bugfixes.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\n      <div class=\"release bugfix-section\">\n        <h3>${r.repo} <span style=\"color: #7f8c8d; font-weight: normal;\">${r.version}</span></h3>\n        <div class=\"release-date\">Released: ${r.published}</div>\n        <div class=\"release-summary\">${summaryText}</div>\n        <a href=\"${r.url}\" class=\"release-link\">View Release \u2192</a>\n      </div>\n    `;\n  });\n}\n\nif (grouped.breaking.length > 0) {\n  digest += `<h2><span class=\"emoji\">\u26a0\ufe0f</span>Breaking Changes</h2>`;\n  grouped.breaking.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\n      <div class=\"release breaking-section\">\n        <h3>${r.repo} <span style=\"color: #7f8c8d; font-weight: normal;\">${r.version}</span></h3>\n        <div class=\"release-date\">Released: ${r.published}</div>\n        <div class=\"release-summary\">${summaryText}</div>\n        <a href=\"${r.url}\" class=\"release-link\">View Release \u2192</a>\n      </div>\n    `;\n  });\n}\n\nif (grouped.other.length > 0) {\n  digest += `<h2><span class=\"emoji\">\ud83d\udcdd</span>Other Updates</h2>`;\n  grouped.other.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\n      <div class=\"release other-section\">\n        <h3>${r.repo} <span style=\"color: #7f8c8d; font-weight: normal;\">${r.version}</span></h3>\n        <div class=\"release-date\">Released: ${r.published}</div>\n        <div class=\"release-summary\">${summaryText}</div>\n        <a href=\"${r.url}\" class=\"release-link\">View Release \u2192</a>\n      </div>\n    `;\n  });\n}\n\nif (fullReleases.length === 0) {\n  digest += `\n    <div class=\"release\">\n      <p>No new releases detected this period.</p>\n      <p style=\"color: #7f8c8d;\"><em>All monitored repositories are up to date.</em></p>\n    </div>\n  `;\n}\n\ndigest += `\n    <div class=\"stats\">\n      <h3>\ud83d\udcca Statistics</h3>\n      <ul>\n        <li><strong>Total releases:</strong> ${fullReleases.length}</li>\n        <li><strong>\ud83d\ude80 Features:</strong> ${grouped.features.length}</li>\n        <li><strong>\ud83d\udc1b Bug Fixes:</strong> ${grouped.bugfixes.length}</li>\n        <li><strong>\u26a0\ufe0f Breaking Changes:</strong> ${grouped.breaking.length}</li>\n        <li><strong>\ud83d\udcdd Other Updates:</strong> ${grouped.other.length}</li>\n      </ul>\n    </div>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    digest: digest,\n    release_count: fullReleases.length,\n    stats: {\n      features: grouped.features.length,\n      bugfixes: grouped.bugfixes.length,\n      breaking: grouped.breaking.length,\n      other: grouped.other.length\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -512
+      ],
+      "id": "0b077c79-3fc8-42ac-a97d-cbcd907e5e72",
+      "name": "Format Digest - HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The aggregate node gives us an array with a data property\nconst aggregatedData = items[0].json.data || items;\n\n// Process each release\nconst releases = aggregatedData.map(item => {\n  const ai_summary = item.ai_summary || 'No summary available';\n  const hasFullData = item.html_url && item.published_at;\n  \n  return {\n    repo: item.repo_name || 'Unknown',\n    version: item.tag_name || 'Unknown',\n    url: item.html_url || '#',\n    summary: ai_summary,\n    published: item.published_at \n      ? new Date(item.published_at).toLocaleDateString('en-US', {\n          month: 'short',\n          day: '2-digit',\n          year: 'numeric'\n        })\n      : 'Unknown date',\n    hasFullData: hasFullData\n  };\n});\n\n// Filter out releases that don't have full data\nconst fullReleases = releases.filter(r => r.hasFullData);\n\n// Group by category\nconst grouped = {\n  features: [],\n  bugfixes: [],\n  breaking: [],\n  other: []\n};\n\nfullReleases.forEach(r => {\n  const category = (r.summary || '').toLowerCase();\n  if (category.includes('feature')) {\n    grouped.features.push(r);\n  } else if (category.includes('bugfix') || category.includes('bug')) {\n    grouped.bugfixes.push(r);\n  } else if (category.includes('breaking')) {\n    grouped.breaking.push(r);\n  } else {\n    grouped.other.push(r);\n  }\n});\n\n// Build Slack-formatted digest\nlet digest = `:package: *GitHub Changelog Digest* - ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\\n\\n`;\n\nif (grouped.features.length > 0) {\n  digest += `:rocket: *New Features*\\n`;\n  grouped.features.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\\n*${r.repo}* \\`${r.version}\\`\\n`;\n    digest += `_Released: ${r.published}_\\n`;\n    digest += `${summaryText}\\n`;\n    digest += `<${r.url}|View Release :link:>\\n`;\n    digest += `${'\u2500'.repeat(50)}\\n`;\n  });\n  digest += `\\n`;\n}\n\nif (grouped.bugfixes.length > 0) {\n  digest += `:bug: *Bug Fixes*\\n`;\n  grouped.bugfixes.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\\n*${r.repo}* \\`${r.version}\\`\\n`;\n    digest += `_Released: ${r.published}_\\n`;\n    digest += `${summaryText}\\n`;\n    digest += `<${r.url}|View Release :link:>\\n`;\n    digest += `${'\u2500'.repeat(50)}\\n`;\n  });\n  digest += `\\n`;\n}\n\nif (grouped.breaking.length > 0) {\n  digest += `:warning: *Breaking Changes*\\n`;\n  grouped.breaking.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\\n*${r.repo}* \\`${r.version}\\`\\n`;\n    digest += `_Released: ${r.published}_\\n`;\n    digest += `${summaryText}\\n`;\n    digest += `<${r.url}|View Release :link:>\\n`;\n    digest += `${'\u2500'.repeat(50)}\\n`;\n  });\n  digest += `\\n`;\n}\n\nif (grouped.other.length > 0) {\n  digest += `:memo: *Other Updates*\\n`;\n  grouped.other.forEach(r => {\n    const summaryText = r.summary\n      .replace(/\\*\\*Category:\\*\\*\\s*(Feature|Bugfix|Breaking Change|Other)\\s*/gi, '')\n      .replace(/\\*\\*Summary:\\*\\*/gi, '')\n      .trim();\n    \n    digest += `\\n*${r.repo}* \\`${r.version}\\`\\n`;\n    digest += `_Released: ${r.published}_\\n`;\n    digest += `${summaryText}\\n`;\n    digest += `<${r.url}|View Release :link:>\\n`;\n    digest += `${'\u2500'.repeat(50)}\\n`;\n  });\n  digest += `\\n`;\n}\n\nif (fullReleases.length === 0) {\n  digest += `_No new releases detected this period._\\n`;\n  digest += `_All monitored repositories are up to date._\\n\\n`;\n}\n\ndigest += `\\n`;\ndigest += `:bar_chart: *Statistics*\\n`;\ndigest += `\u2022 Total releases: *${fullReleases.length}*\\n`;\ndigest += `\u2022 :rocket: Features: *${grouped.features.length}*\\n`;\ndigest += `\u2022 :bug: Bug Fixes: *${grouped.bugfixes.length}*\\n`;\ndigest += `\u2022 :warning: Breaking Changes: *${grouped.breaking.length}*\\n`;\ndigest += `\u2022 :memo: Other Updates: *${grouped.other.length}*\\n`;\n\nreturn [{\n  json: {\n    digest: digest,\n    release_count: fullReleases.length,\n    stats: {\n      features: grouped.features.length,\n      bugfixes: grouped.bugfixes.length,\n      breaking: grouped.breaking.length,\n      other: grouped.other.length\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -320
+      ],
+      "id": "6906103e-2d78-4c7e-8207-c1c87fabeed8",
+      "name": "Format Digest - mrkdown"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C09M2V8LKPA",
+          "mode": "list",
+          "cachedResultName": "github-releases"
+        },
+        "text": "={{ $json.digest }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -320
+      ],
+      "id": "84eb090a-83ae-4ed8-b7fe-69bf39444b4e",
+      "name": "Send a message1",
+      "webhookId": "0706865c-4b6f-4b7f-b3f4-bec2aeaef255"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Repo List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a repository": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Repo List": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Processed": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Mark as Processed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as Processed": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a repository",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Summary to Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Extract Release Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Format Digest - HTML",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Digest - mrkdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Release Info": {
+      "main": [
+        [
+          {
+            "node": "Check If Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge AI Summary to Metadata": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Digest - HTML": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Digest - mrkdown": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REDACTED"
+  }
+}

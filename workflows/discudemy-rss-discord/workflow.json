@@ -20,7 +20,7 @@
       "typeVersion": 1,
       "position": [
         -368,
-        -224
+        -128
       ],
       "id": "149e74c2-ee60-4ae6-8cea-5fdbf19876eb",
       "name": "RSS Feed Trigger"
@@ -45,15 +45,17 @@
         "resource": "message",
         "guildId": {
           "__rl": true,
-          "value": "1427312886560325644",
-          "mode": "id"
+          "value": "REDACTED",
+          "mode": "id",
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
         },
         "channelId": {
           "__rl": true,
-          "value": "1427313053493625025",
+          "value": "REDACTED",
           "mode": "list",
-          "cachedResultName": "discudemy-rss",
-          "cachedResultUrl": "https://discord.com/channels/1427312886560325644/1427313053493625025"
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
         },
         "content": "=\n{{ new Date($('RSS Feed Trigger').first().json.isoDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) }} - [{{ $('RSS Feed Trigger').item.json.title }}]({{ $json.coupon_link }})",
         "options": {}
@@ -65,7 +67,8 @@
         -224
       ],
       "id": "3b9b676a-2e99-470d-b639-2c9a2638ebd2",
-      "name": "Send a message"
+      "name": "Send a message",
+      "webhookId": "REDACTED"
     },
     {
       "parameters": {
@@ -92,6 +95,65 @@
       ],
       "id": "4b435679-8cd5-4af7-b7d6-70429fcdbcd5",
       "name": "Get Discount Link"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REDACTED",
+          "mode": "list",
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "createdAt",
+              "condition": "lt",
+              "keyValue": "={{ $now.minus({ weeks: 3 }).toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -32
+      ],
+      "id": "e4aba43a-205e-4ccd-9765-468cec79938b",
+      "name": "Delete Old Data"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "REDACTED",
+          "mode": "list",
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "link",
+              "keyValue": "={{ $json.link }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -224
+      ],
+      "id": "5944ca29-e940-4f19-af1e-fcb03c549bfa",
+      "name": "Get link",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
@@ -125,16 +187,16 @@
         -224
       ],
       "id": "129c018d-c2b4-4a96-9da7-c30fb3231dac",
-      "name": "If"
+      "name": "Check If Processed"
     },
     {
       "parameters": {
         "dataTableId": {
           "__rl": true,
-          "value": "ptScjdJS8AE9TkmI",
+          "value": "REDACTED",
           "mode": "list",
-          "cachedResultName": "Discudemy",
-          "cachedResultUrl": "/projects/MeIbDTD71yLJQ3En/datatables/ptScjdJS8AE9TkmI"
+          "cachedResultName": "REDACTED",
+          "cachedResultUrl": "REDACTED"
         },
         "columns": {
           "mappingMode": "defineBelow",
@@ -181,66 +243,7 @@
         -224
       ],
       "id": "4bed85be-a631-49a7-9d47-03e27d9d9fa9",
-      "name": "Insert row"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "ptScjdJS8AE9TkmI",
-          "mode": "list",
-          "cachedResultName": "Discudemy",
-          "cachedResultUrl": "/projects/MeIbDTD71yLJQ3En/datatables/ptScjdJS8AE9TkmI"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "link",
-              "keyValue": "={{ $json.link }}"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1,
-      "position": [
-        -96,
-        -224
-      ],
-      "id": "5944ca29-e940-4f19-af1e-fcb03c549bfa",
-      "name": "Get row(s)",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "operation": "deleteRows",
-        "dataTableId": {
-          "__rl": true,
-          "value": "ptScjdJS8AE9TkmI",
-          "mode": "list",
-          "cachedResultName": "Discudemy",
-          "cachedResultUrl": "/projects/MeIbDTD71yLJQ3En/datatables/ptScjdJS8AE9TkmI"
-        },
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "createdAt",
-              "condition": "lt",
-              "keyValue": "={{ $now.minus({ weeks: 3 }).toISO() }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1,
-      "position": [
-        -96,
-        -32
-      ],
-      "id": "e4aba43a-205e-4ccd-9765-468cec79938b",
-      "name": "Delete Old Data"
+      "name": "Insert to Data Table"
     }
   ],
   "connections": {
@@ -248,7 +251,7 @@
       "main": [
         [
           {
-            "node": "Get row(s)",
+            "node": "Get link",
             "type": "main",
             "index": 0
           },
@@ -298,19 +301,30 @@
         ]
       ]
     },
-    "If": {
+    "Get link": {
       "main": [
-        [],
         [
           {
-            "node": "Insert row",
+            "node": "Check If Processed",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Insert row": {
+    "Check If Processed": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Insert to Data Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert to Data Table": {
       "main": [
         [
           {
@@ -320,21 +334,11 @@
           }
         ]
       ]
-    },
-    "Get row(s)": {
-      "main": [
-        [
-          {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "pinData": {},
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REDACTED"
   }
 }

@@ -15,6 +15,8 @@ Manually checking for free Udemy courses is time-consuming. This workflow automa
 
 ## Workflow Logic
 
+
+
 \`\`\`
 RSS Feed → Check Duplicates → Insert to DB → Extract Link → 
 Get Coupon → Post to Discord
@@ -25,12 +27,12 @@ Get Coupon → Post to Discord
 ## Key Nodes
 
 1. **RSS Feed Trigger** - Monitors Discudemy feed twice per hour
-2. **Get row(s)** - Checks if course already posted (deduplication)
-3. **If Node** - Conditional logic for new courses only
-4. **Insert row** - Stores course info in Data Table
-5. **Code Nodes** - Extract course slug & parse coupon links
+2. **Get Link** - Checks if course already posted (deduplication)
+3. **Check If Processed** - Conditional logic for new courses only
+4. **Insert to Data Table** - Stores course info in Data Table
+5. **Take Course Link** - Extract course slug & parse coupon links
 6. **HTTP Request** - Fetches course page HTML
-7. **Discord** - Posts formatted message with link
+7. **Get Discount Link** - Posts formatted message with link
 8. **Delete Old Data** - Removes entries older than 3 weeks
 
 ## Technical Highlights
